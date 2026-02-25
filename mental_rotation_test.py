@@ -1,11 +1,7 @@
 import streamlit as st
 import random
 import time
-import numpy as np
 
-# ---------------------------
-# CONFIGURATION
-# ---------------------------
 image_sets = [
     ("images/target1.png", "images/correct1.png", "images/wrong1.png"),
     ("images/target2.png", "images/correct2.png", "images/wrong2.png"),
@@ -28,14 +24,8 @@ TOTAL_QUESTIONS = 15
 QUESTION_TIME_LIMIT = 10
 
 
-# =====================================================
-# MAIN FUNCTION (CALLED FROM app.py)
-# =====================================================
 def run_mental_rotation_test():
 
-    # ---------------------------
-    # INITIALIZE SESSION STATE
-    # ---------------------------
     if "mrt_initialized" not in st.session_state:
         st.session_state.mrt_initialized = True
         st.session_state.mrt_question = 0
@@ -46,9 +36,6 @@ def run_mental_rotation_test():
         )
         st.session_state.mrt_options = None
 
-    # ---------------------------
-    # RECORD ANSWER
-    # ---------------------------
     def record_answer(is_correct, timed_out=False):
         question_time = time.time() - st.session_state.mrt_question_start
 
@@ -62,9 +49,6 @@ def run_mental_rotation_test():
         st.session_state.mrt_question_start = None
         st.session_state.mrt_options = None
 
-    # ---------------------------
-    # TASK RUNNING
-    # ---------------------------
     if st.session_state.mrt_question < TOTAL_QUESTIONS:
 
         if st.session_state.mrt_question_start is None:
@@ -72,7 +56,6 @@ def run_mental_rotation_test():
 
         elapsed = time.time() - st.session_state.mrt_question_start
 
-        # Timeout auto move
         if elapsed >= QUESTION_TIME_LIMIT:
             record_answer(False, timed_out=True)
             st.rerun()
@@ -100,7 +83,6 @@ def run_mental_rotation_test():
         else:
             options = st.session_state.mrt_options
 
-        st.markdown("### 🎯 Target Image")
         st.image(target_img, width=200)
 
         col1, col2 = st.columns(2)
@@ -117,13 +99,9 @@ def run_mental_rotation_test():
                 record_answer(options[1]["correct"])
                 st.rerun()
 
-        # Smooth refresh without freezing app
         time.sleep(0.5)
         st.rerun()
 
-    # ---------------------------
-    # SHOW RESULTS
-    # ---------------------------
     else:
 
         correct_count = sum(
@@ -138,23 +116,25 @@ def run_mental_rotation_test():
         )
 
         st.markdown("## 🧠 Mental Rotation Results")
-        st.markdown("---")
-
         col1, col2, col3 = st.columns(3)
         col1.metric("Accuracy", f"{accuracy:.1f}%")
         col2.metric("Avg Reaction Time", f"{avg_time:.2f}s")
         col3.metric("Timed Out", f"{timed_out}/{TOTAL_QUESTIONS}")
 
-        # Store score so app.py can use it if needed
         st.session_state.mrt_score = accuracy
 
-        # -------- CLEAN 5 SECOND TRANSITION --------
-        if "mrt_transition_start" not in st.session_state:
-            st.session_state.mrt_transition_start = time.time()
+        if st.button("Finish Assessment"):
 
-        st.markdown("### Moving to final screen...")
+            for key in [
+                "mrt_initialized",
+                "mrt_question",
+                "mrt_results",
+                "mrt_question_start",
+                "mrt_randomized",
+                "mrt_options",
+            ]:
+                if key in st.session_state:
+                    del st.session_state[key]
 
-        if time.time() - st.session_state.mrt_transition_start > 5:
             st.session_state.current_stage = "final"
-            del st.session_state.mrt_transition_start
             st.rerun()
