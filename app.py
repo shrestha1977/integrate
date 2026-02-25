@@ -127,14 +127,16 @@ elif st.session_state.current_stage == "instructions":
     Please respond as quickly and accurately as possible.
     """)
 
-    st.info("The test will begin shortly...")
+    st.info("The test will start automatically...")
 
-    # Initialize timer if missing
+    # Initialize timer once
     if "instruction_start" not in st.session_state:
         st.session_state.instruction_start = time.time()
 
-    # Auto transition after 5 seconds
-    if time.time() - st.session_state.instruction_start >= 5:
+    # Transition logic (IMPORTANT FIX)
+    elapsed = time.time() - st.session_state.instruction_start
+
+    if elapsed >= 5:
         st.session_state.current_stage = "math"
         st.session_state.pop("instruction_start", None)
         st.rerun()
