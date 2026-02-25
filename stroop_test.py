@@ -3,7 +3,6 @@ import random
 import time
 import pandas as pd
 
-# ---------------- CONFIG ----------------
 TOTAL_QUESTIONS = 42
 TIME_LIMIT = 5
 
@@ -16,7 +15,7 @@ COLORS = {
 
 NEUTRAL_WORDS = ["DOG", "CAR", "TREE", "HOUSE"]
 
-# ---------------- FUNCTIONS ----------------
+
 def generate_question():
     q_type = random.choice(["congruent", "incongruent", "neutral"])
 
@@ -59,25 +58,19 @@ def next_question():
     ) = generate_question()
 
 
-# ================= MAIN WRAPPER FUNCTION =================
 def run_stroop_test():
 
-    # ---------------- SESSION STATE ----------------
     if "stroop_started" not in st.session_state:
         st.session_state.stroop_started = False
-
     if "q_index" not in st.session_state:
         st.session_state.q_index = 1
-
     if "results" not in st.session_state:
         st.session_state.results = []
-
     if "answered" not in st.session_state:
         st.session_state.answered = False
 
     st.title("🧠 Stroop Color–Word Test")
 
-    # ---------------- AUTO START (NO BUTTON) ----------------
     if not st.session_state.stroop_started:
         st.session_state.stroop_started = True
         st.session_state.q_index = 1
@@ -92,7 +85,7 @@ def run_stroop_test():
 
         st.session_state.answered = False
 
-    # ---------------- FINISH ----------------
+    # ================= FINISH =================
     if st.session_state.q_index > TOTAL_QUESTIONS:
 
         st.success("✅ Test Completed")
@@ -130,20 +123,27 @@ def run_stroop_test():
             "text/csv"
         )
 
-        # ---------- CLEAN 5 SECOND TRANSITION ----------
-        if "stroop_transition_start" not in st.session_state:
-            st.session_state.stroop_transition_start = time.time()
+        if st.button("Continue to Mental Rotation Test"):
 
-        st.info("Next test starting shortly...")
+            for key in [
+                "stroop_started",
+                "q_index",
+                "results",
+                "answered",
+                "word",
+                "color",
+                "condition",
+                "start_time",
+            ]:
+                if key in st.session_state:
+                    del st.session_state[key]
 
-        if time.time() - st.session_state.stroop_transition_start > 5:
             st.session_state.current_stage = "mental"
-            del st.session_state.stroop_transition_start
             st.rerun()
 
         return
 
-    # ---------------- TIMER ----------------
+    # ================= QUESTION LOOP =================
     elapsed = time.time() - st.session_state.start_time
     remaining = max(0, int(TIME_LIMIT - elapsed))
 
@@ -179,7 +179,6 @@ def run_stroop_test():
                 st.rerun()
 
     if remaining == 0 and not st.session_state.answered:
-
         record_response(
             st.session_state.results,
             st.session_state.q_index,
@@ -190,10 +189,8 @@ def run_stroop_test():
             False,
             None
         )
-
         next_question()
         st.rerun()
 
-    # smooth timer refresh
     time.sleep(1)
     st.rerun()
