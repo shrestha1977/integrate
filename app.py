@@ -102,9 +102,8 @@ if st.session_state.current_stage == "consent":
         st.session_state.instruction_start = time.time()
         st.rerun()
 
-
 # =====================================================
-# 2️⃣ INSTRUCTION SCREEN (NON-BLOCKING 5 SECONDS)
+# 2️⃣ INSTRUCTION SCREEN (AUTO 5 SECONDS)
 # =====================================================
 elif st.session_state.current_stage == "instructions":
 
@@ -127,11 +126,19 @@ elif st.session_state.current_stage == "instructions":
 
     st.info("The test will begin shortly...")
 
+    # Safety initialization
+    if "instruction_start" not in st.session_state:
+        st.session_state.instruction_start = time.time()
+
+    # Auto refresh loop
     if time.time() - st.session_state.instruction_start > 5:
         st.session_state.current_stage = "math"
         del st.session_state.instruction_start
         st.rerun()
 
+    # This keeps the timer alive
+    time.sleep(1)
+    st.rerun()
 
 # =====================================================
 # 3️⃣ MATH TEST
@@ -139,20 +146,17 @@ elif st.session_state.current_stage == "instructions":
 elif st.session_state.current_stage == "math":
     run_math_test()
 
-
 # =====================================================
 # 4️⃣ STROOP TEST
 # =====================================================
 elif st.session_state.current_stage == "stroop":
     run_stroop_test()
 
-
 # =====================================================
 # 5️⃣ MENTAL ROTATION TEST
 # =====================================================
 elif st.session_state.current_stage == "mental":
     run_mental_rotation_test()
-
 
 # =====================================================
 # 6️⃣ FINAL THANK YOU SCREEN
