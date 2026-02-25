@@ -83,7 +83,6 @@ if st.session_state.current_stage == "consent":
             st.warning("Please enter your name.")
             st.stop()
 
-        # Store demographics if needed later
         st.session_state.demographics = {
             "name": name,
             "age": age,
@@ -100,10 +99,12 @@ if st.session_state.current_stage == "consent":
         }
 
         st.session_state.current_stage = "instructions"
+        st.session_state.instruction_start = time.time()
         st.rerun()
 
+
 # =====================================================
-# 2️⃣ INSTRUCTION SCREEN (5 SECONDS)
+# 2️⃣ INSTRUCTION SCREEN (NON-BLOCKING 5 SECONDS)
 # =====================================================
 elif st.session_state.current_stage == "instructions":
 
@@ -126,9 +127,11 @@ elif st.session_state.current_stage == "instructions":
 
     st.info("The test will begin shortly...")
 
-    time.sleep(5)
-    st.session_state.current_stage = "math"
-    st.rerun()
+    if time.time() - st.session_state.instruction_start > 5:
+        st.session_state.current_stage = "math"
+        del st.session_state.instruction_start
+        st.rerun()
+
 
 # =====================================================
 # 3️⃣ MATH TEST
@@ -136,17 +139,20 @@ elif st.session_state.current_stage == "instructions":
 elif st.session_state.current_stage == "math":
     run_math_test()
 
+
 # =====================================================
 # 4️⃣ STROOP TEST
 # =====================================================
 elif st.session_state.current_stage == "stroop":
     run_stroop_test()
 
+
 # =====================================================
 # 5️⃣ MENTAL ROTATION TEST
 # =====================================================
 elif st.session_state.current_stage == "mental":
     run_mental_rotation_test()
+
 
 # =====================================================
 # 6️⃣ FINAL THANK YOU SCREEN
