@@ -45,7 +45,6 @@ def run_mental_rotation_test():
             range(len(image_sets)), TOTAL_QUESTIONS
         )
         st.session_state.mrt_options = None
-        st.session_state.mrt_finished = False
 
     # ---------------------------
     # RECORD ANSWER
@@ -80,8 +79,10 @@ def run_mental_rotation_test():
 
         remaining = QUESTION_TIME_LIMIT - elapsed
 
-        st.markdown(f"## Mental Rotation Task")
-        st.markdown(f"### Question {st.session_state.mrt_question + 1} / {TOTAL_QUESTIONS}")
+        st.markdown("## Mental Rotation Task")
+        st.markdown(
+            f"### Question {st.session_state.mrt_question + 1} / {TOTAL_QUESTIONS}"
+        )
         st.progress(remaining / QUESTION_TIME_LIMIT)
 
         trial_idx = st.session_state.mrt_randomized[
@@ -116,6 +117,7 @@ def run_mental_rotation_test():
                 record_answer(options[1]["correct"])
                 st.rerun()
 
+        # Smooth refresh without freezing app
         time.sleep(0.5)
         st.rerun()
 
@@ -143,11 +145,16 @@ def run_mental_rotation_test():
         col2.metric("Avg Reaction Time", f"{avg_time:.2f}s")
         col3.metric("Timed Out", f"{timed_out}/{TOTAL_QUESTIONS}")
 
-        # Store score so app.py can show final summary
+        # Store score so app.py can use it if needed
         st.session_state.mrt_score = accuracy
 
-        st.markdown("### Moving to final screen...")
-        time.sleep(5)
+        # -------- CLEAN 5 SECOND TRANSITION --------
+        if "mrt_transition_start" not in st.session_state:
+            st.session_state.mrt_transition_start = time.time()
 
-        st.session_state.current_stage = "final"
-        st.rerun()
+        st.markdown("### Moving to final screen...")
+
+        if time.time() - st.session_state.mrt_transition_start > 5:
+            st.session_state.current_stage = "final"
+            del st.session_state.mrt_transition_start
+            st.rerun()
