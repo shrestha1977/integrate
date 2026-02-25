@@ -93,7 +93,6 @@ def generate_math_questions(num=QUESTION_POOL_SIZE):
 # ================= MAIN WRAPPER FUNCTION =================
 def run_math_test():
 
-    # ================= SESSION STATE =================
     if "test_started" not in st.session_state:
         st.session_state.test_started = False
 
@@ -122,7 +121,6 @@ def run_math_test():
             "high_correct": 0,
         }
 
-    # ================= TITLE =================
     st.title("Numerical Ability Cognitive Test")
 
     # ================= START SCREEN =================
@@ -136,7 +134,7 @@ def run_math_test():
             st.session_state.start_time = time.time()
             st.rerun()
 
-        return None
+        return
 
     # ================= TEST RUNNING =================
     else:
@@ -148,6 +146,7 @@ def run_math_test():
         secs = max(0, remaining) % 60
         st.metric("⏳ Time Remaining", f"{mins:02d}:{secs:02d}")
 
+        # ================= TIME OVER =================
         if remaining <= 0:
 
             st.success("Time's up!")
@@ -187,8 +186,13 @@ def run_math_test():
 
                 st.session_state["numerical_score"] = numerical_score
 
-            return "completed"
+            st.info("Next test starting shortly...")
+            time.sleep(5)
 
+            st.session_state.current_stage = "stroop"
+            st.rerun()
+
+        # ================= CONTINUE QUESTIONS =================
         else:
 
             message_placeholder = st.empty()
@@ -203,7 +207,6 @@ def run_math_test():
             st.subheader(f"Question: {question} = ?")
 
             with st.form("math_form", clear_on_submit=True):
-
                 ans = st.text_input("Your answer", key="answer_input")
                 submit = st.form_submit_button("Submit")
 
