@@ -115,21 +115,23 @@ elif st.session_state.current_stage == "instructions":
     st.markdown("""
     You will complete **three cognitive tasks**:
 
-    1. Math Speed Test
-    2. Stroop Test
-    3. Mental Rotation Task
+    1. Math Speed Test  
+    2. Stroop Test  
+    3. Mental Rotation Task  
 
     Respond quickly and accurately.
 
-    The test will start after clicking the button below.
+    Click the button below to begin the assessment.
     """)
 
-    if st.button("Continue to Test"):
+    # Cloud-safe state initialization
+    if "instruction_ready" not in st.session_state:
+        st.session_state.instruction_ready = False
 
+    if st.button("Continue to Test"):
+        st.session_state.instruction_ready = True
         st.session_state.current_stage = "math"
         st.rerun()
-
-    return
 
 # =====================================================
 # MATH TEST
