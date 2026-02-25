@@ -63,8 +63,8 @@ def next_question():
 def run_stroop_test():
 
     # ---------------- SESSION STATE ----------------
-    if "started" not in st.session_state:
-        st.session_state.started = False
+    if "stroop_started" not in st.session_state:
+        st.session_state.stroop_started = False
 
     if "q_index" not in st.session_state:
         st.session_state.q_index = 1
@@ -77,31 +77,20 @@ def run_stroop_test():
 
     st.title("🧠 Stroop Color–Word Test")
 
-    # ---------------- INSTRUCTIONS ----------------
-    if not st.session_state.started:
+    # ---------------- AUTO START (NO BUTTON) ----------------
+    if not st.session_state.stroop_started:
+        st.session_state.stroop_started = True
+        st.session_state.q_index = 1
+        st.session_state.results = []
+        st.session_state.start_time = time.time()
 
-        st.subheader("📋 Instructions")
-        st.write("""
-- Select the **COLOR of the text**, not the word.
-- Some words may **not represent colors**.
-- Each question has **5 seconds**.
-- Total questions: **42**
-""")
+        (
+            st.session_state.word,
+            st.session_state.color,
+            st.session_state.condition
+        ) = generate_question()
 
-        if st.button("▶️ Start Test"):
-            st.session_state.started = True
-            st.session_state.q_index = 1
-            st.session_state.results = []
-            st.session_state.start_time = time.time()
-            (
-                st.session_state.word,
-                st.session_state.color,
-                st.session_state.condition
-            ) = generate_question()
-            st.session_state.answered = False
-            st.rerun()
-
-        return
+        st.session_state.answered = False
 
     # ---------------- FINISH ----------------
     if st.session_state.q_index > TOTAL_QUESTIONS:
@@ -141,12 +130,18 @@ def run_stroop_test():
             "text/csv"
         )
 
-        # ✅ WAIT 5 SECONDS THEN MOVE TO MENTAL TEST
-        st.info("Next test starting shortly...")
-        time.sleep(5)
+        # ---------- CLEAN 5 SECOND TRANSITION ----------
+        if "stroop_transition_start" not in st.session_state:
+            st.session_state.stroop_transition_start = time.time()
 
-        st.session_state.current_stage = "mental"
-        st.rerun()
+        st.info("Next test starting shortly...")
+
+        if time.time() - st.session_state.stroop_transition_start > 5:
+            st.session_state.current_stage = "mental"
+            del st.session_state.stroop_transition_start
+            st.rerun()
+
+        return
 
     # ---------------- TIMER ----------------
     elapsed = time.time() - st.session_state.start_time
@@ -199,6 +194,6 @@ def run_stroop_test():
         next_question()
         st.rerun()
 
-    # Smooth timer refresh
+    # smooth timer refresh
     time.sleep(1)
     st.rerun()
