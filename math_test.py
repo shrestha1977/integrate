@@ -80,18 +80,26 @@ def generate_math_questions(num=QUESTION_POOL_SIZE):
 
 def run_math_test():
 
+    # ================= SESSION INIT =================
+
     if "test_started" not in st.session_state:
         st.session_state.test_started = False
+
     if "start_time" not in st.session_state:
         st.session_state.start_time = None
+
     if "questions" not in st.session_state:
         st.session_state.questions = generate_math_questions()
+
     if "current_question_index" not in st.session_state:
         st.session_state.current_question_index = 0
+
     if "correct_count" not in st.session_state:
         st.session_state.correct_count = 0
+
     if "attempted" not in st.session_state:
         st.session_state.attempted = 0
+
     if "difficulty_stats" not in st.session_state:
         st.session_state.difficulty_stats = {
             "low_attempted": 0,
@@ -104,24 +112,35 @@ def run_math_test():
 
     st.title("Numerical Ability Cognitive Test")
 
+    # ================= START SCREEN =================
+
     if not st.session_state.test_started:
+
         st.write("You will have **5 minutes** to solve as many questions as possible.")
+
         if st.button("Start Test"):
             st.session_state.test_started = True
             st.session_state.start_time = time.time()
             st.rerun()
+
         return
 
-    elapsed = time.time() - st.session_state.start_time
+    # ================= TIMER =================
+
+    elapsed = max(0, time.time() - st.session_state.start_time)
     remaining = int(TEST_DURATION - elapsed)
 
     mins = max(0, remaining) // 60
     secs = max(0, remaining) % 60
+
     st.metric("⏳ Time Remaining", f"{mins:02d}:{secs:02d}")
+
+    # ================= TIME UP =================
 
     if remaining <= 0:
 
         st.success("Time's up!")
+
         st.write("Questions Attempted:", st.session_state.attempted)
         st.write("Correct Answers:", st.session_state.correct_count)
 
@@ -143,7 +162,9 @@ def run_math_test():
             )
 
             weighted_accuracy = weighted_correct / weighted_attempted if weighted_attempted > 0 else 0
+
             speed_efficiency = min(st.session_state.attempted / QUESTION_POOL_SIZE, 1)
+
             numerical_score = (0.7 * weighted_accuracy) + (0.3 * speed_efficiency)
 
             st.write("Weighted Accuracy:", f"{weighted_accuracy:.2f}")
@@ -159,15 +180,20 @@ def run_math_test():
                 "current_question_index", "correct_count",
                 "attempted", "difficulty_stats"
             ]:
-                if key in st.session_state:
-                    del st.session_state[key]
+                st.session_state.pop(key, None)
 
             st.session_state.current_stage = "stroop"
             st.rerun()
 
         return
 
-    idx = st.session_state.current_question_index
+    # ================= QUESTION DISPLAY =================
+
+    idx = min(
+        st.session_state.current_question_index,
+        len(st.session_state.questions) - 1
+    )
+
     question, correct_answer, difficulty = st.session_state.questions[idx]
 
     st.subheader(f"Question: {question} = ?")
@@ -177,9 +203,11 @@ def run_math_test():
         submit = st.form_submit_button("Submit")
 
     if submit:
+
         if ans.strip() != "":
             try:
                 numeric_answer = int(ans.strip())
+
                 st.session_state.attempted += 1
 
                 if numeric_answer == correct_answer:
@@ -193,6 +221,7 @@ def run_math_test():
                     level = "high"
 
                 st.session_state.difficulty_stats[f"{level}_attempted"] += 1
+
                 if numeric_answer == correct_answer:
                     st.session_state.difficulty_stats[f"{level}_correct"] += 1
 
