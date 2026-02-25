@@ -2,7 +2,6 @@ import streamlit as st
 import random
 import time
 import pandas as pd
-from streamlit_autorefresh import st_autorefresh
 
 # ---------------- CONFIG ----------------
 TOTAL_QUESTIONS = 42
@@ -76,11 +75,11 @@ def run_stroop_test():
     if "answered" not in st.session_state:
         st.session_state.answered = False
 
-    # ---------------- UI ----------------
     st.title("🧠 Stroop Color–Word Test")
 
     # ---------------- INSTRUCTIONS ----------------
     if not st.session_state.started:
+
         st.subheader("📋 Instructions")
         st.write("""
 - Select the **COLOR of the text**, not the word.
@@ -102,10 +101,11 @@ def run_stroop_test():
             st.session_state.answered = False
             st.rerun()
 
-        return None
+        return
 
     # ---------------- FINISH ----------------
     if st.session_state.q_index > TOTAL_QUESTIONS:
+
         st.success("✅ Test Completed")
 
         df = pd.DataFrame(st.session_state.results)
@@ -141,12 +141,16 @@ def run_stroop_test():
             "text/csv"
         )
 
-        return "completed"
+        # ✅ WAIT 5 SECONDS THEN MOVE TO MENTAL TEST
+        st.info("Next test starting shortly...")
+        time.sleep(5)
+
+        st.session_state.current_stage = "mental"
+        st.rerun()
 
     # ---------------- TIMER ----------------
     elapsed = time.time() - st.session_state.start_time
     remaining = max(0, int(TIME_LIMIT - elapsed))
-    st_autorefresh(interval=1000, key="timer")
 
     st.write(f"### Question {st.session_state.q_index} / {TOTAL_QUESTIONS}")
     st.warning(f"⏱ Time left: {remaining} seconds")
@@ -180,6 +184,7 @@ def run_stroop_test():
                 st.rerun()
 
     if remaining == 0 and not st.session_state.answered:
+
         record_response(
             st.session_state.results,
             st.session_state.q_index,
@@ -194,4 +199,6 @@ def run_stroop_test():
         next_question()
         st.rerun()
 
-    return None
+    # Smooth timer refresh
+    time.sleep(1)
+    st.rerun()
