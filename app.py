@@ -115,31 +115,21 @@ elif st.session_state.current_stage == "instructions":
     st.markdown("""
     You will complete **three cognitive tasks**:
 
-    1. **Math Speed Test**
-       - Solve arithmetic questions quickly and accurately.
+    1. Math Speed Test
+    2. Stroop Test
+    3. Mental Rotation Task
 
-    2. **Stroop Test**
-       - Identify the color of the word, not the word itself.
+    Respond quickly and accurately.
 
-    3. **Mental Rotation Task**
-       - Select the correctly rotated image.
-
-    Please respond as quickly and accurately as possible.
+    The test will start after clicking the button below.
     """)
 
-    st.info("The test will start automatically...")
+    if st.button("Continue to Test"):
 
-    # Initialize timer once
-    if "instruction_start" not in st.session_state:
-        st.session_state.instruction_start = time.time()
-
-    # Transition logic (IMPORTANT FIX)
-    elapsed = time.time() - st.session_state.instruction_start
-
-    if elapsed >= 5:
         st.session_state.current_stage = "math"
-        st.session_state.pop("instruction_start", None)
         st.rerun()
+
+    return
 
 # =====================================================
 # MATH TEST
